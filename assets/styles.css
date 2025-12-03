@@ -24,11 +24,11 @@
 
 /* 🌌 Revolutionary Animated Background */
 .main {
-    padding: 2rem 2rem 1rem 2rem;
+    padding: 2rem 2rem 2rem 2rem;
     min-height: auto;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .main::before {
@@ -58,7 +58,7 @@
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-radius: 24px;
-    padding: 2rem 2rem 1.5rem 2rem;
+    padding: 2rem 2rem 2rem 2rem;
     max-width: 1400px;
     margin: 0 auto;
     border: 1px solid rgba(255, 255, 255, 0.125);
@@ -72,13 +72,16 @@
 }
 
 /* Trim bottom gap on the welcome page */
-.block-container > :last-child {
-    margin-bottom: 0 !important;
-}
+.block-container > :last-child { margin-bottom: 0 !important; }
 
 /* Reduce default section spacing to avoid bottom whitespace */
-.stContainer:last-of-type {
-    margin-bottom: 0.5rem !important;
+.stContainer:last-of-type { margin-bottom: 0.75rem !important; }
+
+/* Ensure shadows and borders remain visible at the page edges */
+.main::after {
+    content: '';
+    display: block;
+    height: 12px; /* breathing room to avoid clipping at bottom */
 }
 
 @keyframes containerFloat {
