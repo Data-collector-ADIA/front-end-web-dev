@@ -1,120 +1,354 @@
-/* Custom styles for Streamlit Task Management App */
+/* Custom styles for Streamlit Task Management App - BOLD & DRAMATIC */
 
-/* Custom color theme */
+/* Color Variables - More vibrant */
 :root {
-    --primary-color: #2563eb;
-    --success-color: #10b981;
-    --danger-color: #ef4444;
-    --warning-color: #f59e0b;
+    --primary-color: #6366F1;
+    --primary-hover: #4F46E5;
+    --secondary-color: #14B8A6;
+    --success-color: #10B981;
+    --danger-color: #EF4444;
+    --warning-color: #F59E0B;
+    --background-dark: #1E293B;
+    --background-light: #F8FAFC;
+    --text-primary: #0F172A;
+    --text-secondary: #64748B;
+    --border-color: #E2E8F0;
 }
 
-/* Apply primary color to buttons */
-.stButton > button[kind="primary"] {
-    background-color: var(--primary-color) !important;
-}
-
-/* Main container styling */
+/* Main container - DRAMATIC gradient */
 .main {
-    padding: 2rem;
-    font-size: 1.1rem;
+    padding: 3rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    min-height: 100vh;
 }
 
-/* Card-like containers */
-.stContainer {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 1rem;
-    margin: 0.5rem 0;
+/* ALL content in white cards for contrast */
+.block-container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 2.5rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
 }
 
-/* Button styling */
+/* Typography - BOLD gradients */
+h1 {
+    font-size: 3.5rem !important;
+    font-weight: 900 !important;
+    margin-bottom: 2rem !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    animation: slideInDown 0.6s ease-out;
+}
+
+h2 {
+    font-size: 2.5rem !important;
+    font-weight: 800 !important;
+    margin-bottom: 1.5rem !important;
+    color: #667eea;
+}
+
+h3 {
+    font-size: 1.75rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 1rem !important;
+    color: #764ba2;
+}
+
+/* Buttons - MUCH more dramatic */
 .stButton > button {
-    border-radius: 6px;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    padding: 1rem 2rem !important;
+    border: none !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .stButton > button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-5px) scale(1.05) !important;
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6) !important;
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
 }
 
-/* Form styling */
-.stForm {
-    background-color: #ffffff;
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+.stButton > button:active {
+    transform: translateY(-2px) scale(1.02) !important;
 }
 
-/* Metric cards */
+/* Metric cards - HIGHLY visible */
 .stMetric {
-    background-color: #ffffff;
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    padding: 2rem !important;
+    border-radius: 16px !important;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4) !important;
+    transition: all 0.3s ease !important;
+    border: 3px solid rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Expander styling */
-.streamlit-expanderHeader {
-    background-color: #f8f9fa;
-    border-radius: 6px;
-    font-weight: 500;
+.stMetric:hover {
+    transform: translateY(-8px) rotate(-2deg) !important;
+    box-shadow: 0 20px 50px rgba(102, 126, 234, 0.6) !important;
 }
 
-/* Tab styling */
+.stMetric label {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.stMetric [data-testid="stMetricValue"] {
+    font-size: 3.5rem !important;
+    font-weight: 900 !important;
+    color: white !important;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Forms - More prominent */
+.stForm {
+    background: white !important;
+    padding: 2.5rem !important;
+    border-radius: 16px !important;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15) !important;
+    border: 3px solid #667eea !important;
+}
+
+/* Input fields - BOLD focus */
+input, textarea, select {
+    border-radius: 10px !important;
+    border: 3px solid #E2E8F0 !important;
+    padding: 1rem !important;
+    font-size: 1.1rem !important;
+    transition: all 0.3s ease !important;
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 5px rgba(102, 126, 234, 0.3) !important;
+    outline: none !important;
+    transform: scale(1.02);
+}
+
+/* Tabs - DRAMATIC styling */
 .stTabs [data-baseweb="tab-list"] {
-    gap: 8px;
+    gap: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
 }
 
 .stTabs [data-baseweb="tab"] {
-    border-radius: 6px 6px 0 0;
-    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    padding: 1rem 2rem !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    transition: all 0.3s ease;
+    color: rgba(255, 255, 255, 0.7) !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-/* Sidebar styling */
-.css-1d391kg {
-    background-color: #f8f9fa;
+.stTabs [data-baseweb="tab"]:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
 }
 
-/* Success/Error/Info messages */
-.stSuccess, .stError, .stWarning, .stInfo {
-    border-radius: 6px;
-    padding: 1rem;
-    margin: 0.5rem 0;
+.stTabs [data-baseweb="tab"][aria-selected="true"] {
+    background: white !important;
+    color: #667eea !important;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    transform: scale(1.05);
 }
 
-/* Divider */
+/* Sidebar - BOLD gradient */
+section[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%) !important;
+    border-right: none !important;
+}
+
+section[data-testid="stSidebar"] > div {
+    background: transparent;
+}
+
+section[data-testid="stSidebar"] .stMarkdown,
+section[data-testid="stSidebar"] label {
+    color: white !important;
+    font-weight: 600;
+}
+
+section[data-testid="stSidebar"] button {
+    background: white !important;
+    color: #667eea !important;
+    font-weight: 700 !important;
+    border-radius: 10px !important;
+}
+
+/* Success/Error/Warning/Info - BRIGHT colors */
+.stSuccess {
+    background: linear-gradient(135deg, #10B981, #059669) !important;
+    border-left: 6px solid #047857 !important;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    margin: 1rem 0 !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4) !important;
+}
+
+.stError {
+    background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+    border-left: 6px solid #B91C1C !important;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    margin: 1rem 0 !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4) !important;
+}
+
+.stWarning {
+    background: linear-gradient(135deg, #F59E0B, #D97706) !important;
+    border-left: 6px solid #B45309 !important;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    margin: 1rem 0 !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4) !important;
+}
+
+.stInfo {
+    background: linear-gradient(135deg, #3B82F6, #2563EB) !important;
+    border-left: 6px solid #1D4ED8 !important;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    margin: 1rem 0 !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4) !important;
+}
+
+/* Expander - More visible */
+.streamlit-expanderHeader {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    color: white !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-size: 1.2rem !important;
+    padding: 1.5rem !important;
+    border: none !important;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.streamlit-expanderHeader:hover {
+    background: linear-gradient(135deg, #764ba2, #667eea) !important;
+    transform: translateX(5px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Divider - More visible */
 hr {
-    margin: 1.5rem 0;
+    margin: 2rem 0;
     border: none;
-    border-top: 1px solid #e0e0e0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #667eea, #764ba2, transparent);
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - COLORFUL */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 14px;
+    height: 14px;
 }
 
 ::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: #F1F5F9;
+    border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 10px;
+    border: 2px solid #F1F5F9;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    background: linear-gradient(135deg, #764ba2, #667eea);
 }
 
-/* Increase base font size */
-.main {
-    font-size: 1.1rem;
+/* Animations - More dramatic */
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* Larger headings */
-h1 { font-size: 2.5rem !important; }
-h2 { font-size: 2rem !important; }
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.main > div {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Container hover effects */
+.stContainer {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 1rem 0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border: 2px solid #E2E8F0;
+    transition: all 0.3s ease;
+}
+
+.stContainer:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 50px rgba(102, 126, 234, 0.2);
+    border-color: #667eea;
+}
+
+/* Text emphasis */
+strong, b {
+    color: #667eea;
+    font-weight: 800;
+}
+
+/* Links */
+a {
+    color: #667eea !important;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+a:hover {
+    color: #764ba2 !important;
+    text-decoration: underline;
+}
