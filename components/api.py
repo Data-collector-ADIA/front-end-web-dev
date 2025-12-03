@@ -5,6 +5,7 @@ Update the BASE_URL to match your backend server.
 
 import requests
 import streamlit as st
+import components.mock_data as mock_data
 
 # Backend API configuration
 BASE_URL = "http://localhost:8000/api"  # Update this to your backend URL
@@ -76,6 +77,13 @@ def get_user_tasks(limit: int = None):
     Returns:
         list: List of task dictionaries
     """
+    # Use mock data if enabled
+    if mock_data.USE_MOCK_DATA:
+        tasks = mock_data.MOCK_TASKS.copy()
+        if limit:
+            return tasks[:limit]
+        return tasks
+    
     try:
         params = {"limit": limit} if limit else {}
         response = requests.get(
@@ -105,6 +113,19 @@ def create_task(title: str, description: str = "", status: str = "pending", prio
     Returns:
         tuple: (success: bool, message: str)
     """
+    # Use mock data if enabled
+    if mock_data.USE_MOCK_DATA:
+        new_task = {
+            "id": str(len(mock_data.MOCK_TASKS) + 1),
+            "title": title,
+            "description": description,
+            "status": status,
+            "priority": priority,
+            "created_at": "2025-12-03 14:00:00"
+        }
+        mock_data.MOCK_TASKS.append(new_task)
+        return True, "Task created successfully! (Mock Mode)"
+    
     try:
         response = requests.post(
             f"{BASE_URL}/tasks",
@@ -135,6 +156,17 @@ def update_task(task_id: str, title: str, description: str, status: str, priorit
     Returns:
         tuple: (success: bool, message: str)
     """
+    # Use mock data if enabled
+    if mock_data.USE_MOCK_DATA:
+        for task in mock_data.MOCK_TASKS:
+            if task["id"] == task_id:
+                task["title"] = title
+                task["description"] = description
+                task["status"] = status
+                task["priority"] = priority
+                return True, "Task updated successfully! (Mock Mode)"
+        return False, "Task not found"
+    
     try:
         response = requests.put(
             f"{BASE_URL}/tasks/{task_id}",
@@ -165,6 +197,14 @@ def delete_task(task_id: str):
     Returns:
         tuple: (success: bool, message: str)
     """
+    # Use mock data if enabled
+    if mock_data.USE_MOCK_DATA:
+        original_len = len(mock_data.MOCK_TASKS)
+        mock_data.MOCK_TASKS[:] = [task for task in mock_data.MOCK_TASKS if task["id"] != task_id]
+        if len(mock_data.MOCK_TASKS) < original_len:
+            return True, "Task deleted successfully! (Mock Mode)"
+        return False, "Task not found"
+    
     try:
         response = requests.delete(
             f"{BASE_URL}/tasks/{task_id}",
@@ -189,6 +229,10 @@ def get_task_statistics():
     Returns:
         dict: Statistics including total, pending, in_progress, completed
     """
+    # Use mock data if enabled
+    if mock_data.USE_MOCK_DATA:
+        return mock_data.get_mock_statistics()
+    
     try:
         response = requests.get(
             f"{BASE_URL}/tasks/stats",

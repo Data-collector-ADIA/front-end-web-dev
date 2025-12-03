@@ -1,5 +1,6 @@
 import streamlit as st
 from pathlib import Path
+from components.dev_utils import mock_login
 
 # Page configuration
 st.set_page_config(
@@ -22,7 +23,7 @@ if logo_file.exists():
 
 # Main app
 def main():
-    st.title("Welcome to Task Management System")
+    st.title("Welcome to DataCollector 📋")
     
     # Check if user is logged in
     if "logged_in" not in st.session_state:
@@ -50,4 +51,5 @@ def main():
         """)
 
 if __name__ == "__main__":
+    mock_login()
     main()
