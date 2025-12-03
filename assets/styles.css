@@ -1,4 +1,5 @@
 /* Custom styles for Streamlit Task Management App - BOLD & DRAMATIC */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
 
 /* Color Variables - More vibrant */
 :root {
@@ -29,6 +30,7 @@
     padding: 2.5rem;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(10px);
+    font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
 
 /* Typography - BOLD gradients */
@@ -175,6 +177,7 @@ input:focus, textarea:focus, select:focus {
 section[data-testid="stSidebar"] {
     background: linear-gradient(180deg, #667eea 0%, #764ba2 100%) !important;
     border-right: none !important;
+    padding-top: 1rem;
 }
 
 section[data-testid="stSidebar"] > div {
@@ -185,6 +188,7 @@ section[data-testid="stSidebar"] .stMarkdown,
 section[data-testid="stSidebar"] label {
     color: white !important;
     font-weight: 600;
+    font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
 
 section[data-testid="stSidebar"] button {
@@ -192,6 +196,17 @@ section[data-testid="stSidebar"] button {
     color: #667eea !important;
     font-weight: 700 !important;
     border-radius: 10px !important;
+    padding: 0.75rem 1rem !important;
+}
+
+/* Logo area refinement */
+/* If a logo image is used in the sidebar, tighten spacing */
+section[data-testid="stSidebar"] img {
+    max-width: 160px !important;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    margin: 0.5rem auto 1rem auto;
+    display: block;
 }
 
 /* Success/Error/Warning/Info - BRIGHT colors */
