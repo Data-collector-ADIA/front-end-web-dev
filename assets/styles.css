@@ -1,0 +1,97 @@
+/* Custom styles for Streamlit Task Management App */
+
+/* Main container styling */
+.main {
+    padding: 2rem;
+}
+
+/* Card-like containers */
+.stContainer {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 0.5rem 0;
+}
+
+/* Button styling */
+.stButton > button {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.stButton > button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Form styling */
+.stForm {
+    background-color: #ffffff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Metric cards */
+.stMetric {
+    background-color: #ffffff;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Expander styling */
+.streamlit-expanderHeader {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+/* Tab styling */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 8px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    border-radius: 6px 6px 0 0;
+    padding: 0.75rem 1.5rem;
+}
+
+/* Sidebar styling */
+.css-1d391kg {
+    background-color: #f8f9fa;
+}
+
+/* Success/Error/Info messages */
+.stSuccess, .stError, .stWarning, .stInfo {
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 0.5rem 0;
+}
+
+/* Divider */
+hr {
+    margin: 1.5rem 0;
+    border: none;
+    border-top: 1px solid #e0e0e0;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
