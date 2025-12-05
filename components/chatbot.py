@@ -14,16 +14,52 @@ from __future__ import annotations
 
 import os
 import time
+import json
 import requests
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict
 
 CHAT_HISTORY_KEY = "chat_history"
 
+# Persistent history file (project-root/data/chat_history.json)
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DATA_DIR = os.path.join(BASE_DIR, "data")
+HISTORY_FILE = os.path.join(DATA_DIR, "chat_history.json")
+
+
+def _ensure_data_dir():
+    if not os.path.exists(DATA_DIR):
+        try:
+            os.makedirs(DATA_DIR, exist_ok=True)
+        except Exception:
+            pass
+
+
+def _load_history_from_disk() -> List[Dict[str, str]]:
+    _ensure_data_dir()
+    if not os.path.exists(HISTORY_FILE):
+        return []
+    try:
+        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+
+def _save_history_to_disk(history: List[Dict[str, str]]) -> None:
+    _ensure_data_dir()
+    try:
+        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+            json.dump(history, f, ensure_ascii=False, indent=2)
+    except Exception:
+        # ignore disk errors for now — keep in-memory history working
+        pass
+
 
 def _ensure_history(st):
     if CHAT_HISTORY_KEY not in st.session_state:
-        st.session_state[CHAT_HISTORY_KEY] = []
+        # Attempt to load persisted history first
+        st.session_state[CHAT_HISTORY_KEY] = _load_history_from_disk()
 
 
 def get_chat_history(st) -> List[Dict[str, str]]:
@@ -33,13 +69,17 @@ def get_chat_history(st) -> List[Dict[str, str]]:
 
 def clear_chat(st) -> None:
     st.session_state[CHAT_HISTORY_KEY] = []
+    _save_history_to_disk(st.session_state[CHAT_HISTORY_KEY])
 
 
 def append_message(st, role: str, content: str, timestamp: str = None) -> None:
     _ensure_history(st)
     if timestamp is None:
-        timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+        # Use ISO 8601 UTC timestamps for easier parsing and relative-time math
+        timestamp = datetime.utcnow().replace(tzinfo=timezone.utc).isoformat()
     st.session_state[CHAT_HISTORY_KEY].append({"role": role, "content": content, "ts": timestamp})
+    # persist
+    _save_history_to_disk(st.session_state[CHAT_HISTORY_KEY])
 
 
 def _mock_response(user_text: str) -> str:
@@ -132,9 +172,10 @@ def get_response_stream(st, user_text: str, use_openai: bool = False, model: str
     append_message(st, "user", user_text)
     # add placeholder assistant message and get its index
     _ensure_history(st)
-    # append an empty assistant message with timestamp placeholder
-    ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    # append an empty assistant message with ISO timestamp placeholder
+    ts = datetime.utcnow().replace(tzinfo=timezone.utc).isoformat()
     st.session_state[CHAT_HISTORY_KEY].append({"role": "assistant", "content": "", "ts": ts})
+    _save_history_to_disk(st.session_state[CHAT_HISTORY_KEY])
     assistant_idx = len(st.session_state[CHAT_HISTORY_KEY]) - 1
 
     api_key = os.environ.get("OPENAI_API_KEY")
@@ -181,6 +222,7 @@ def get_response_stream(st, user_text: str, use_openai: bool = False, model: str
                                 buffer += content
                                 # update session state and yield
                                 st.session_state[CHAT_HISTORY_KEY][assistant_idx]["content"] = buffer
+                                _save_history_to_disk(st.session_state[CHAT_HISTORY_KEY])
                                 yield content
                     except Exception:
                         # ignore parse errors
@@ -188,6 +230,7 @@ def get_response_stream(st, user_text: str, use_openai: bool = False, model: str
         except Exception as e:
             err = f"(OpenAI stream error) {e}"
             st.session_state[CHAT_HISTORY_KEY][assistant_idx]["content"] = err
+            _save_history_to_disk(st.session_state[CHAT_HISTORY_KEY])
             yield err
         return
 
@@ -199,5 +242,6 @@ def get_response_stream(st, user_text: str, use_openai: bool = False, model: str
         part = full[i : i + chunk_size]
         buffer += part
         st.session_state[CHAT_HISTORY_KEY][assistant_idx]["content"] = buffer
+        _save_history_to_disk(st.session_state[CHAT_HISTORY_KEY])
         yield part
         time.sleep(0.06)
