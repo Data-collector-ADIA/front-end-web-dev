@@ -15,6 +15,7 @@ from __future__ import annotations
 import os
 import time
 import requests
+from datetime import datetime
 from typing import List, Dict
 
 CHAT_HISTORY_KEY = "chat_history"
@@ -34,9 +35,11 @@ def clear_chat(st) -> None:
     st.session_state[CHAT_HISTORY_KEY] = []
 
 
-def append_message(st, role: str, content: str) -> None:
+def append_message(st, role: str, content: str, timestamp: str = None) -> None:
     _ensure_history(st)
-    st.session_state[CHAT_HISTORY_KEY].append({"role": role, "content": content})
+    if timestamp is None:
+        timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    st.session_state[CHAT_HISTORY_KEY].append({"role": role, "content": content, "ts": timestamp})
 
 
 def _mock_response(user_text: str) -> str:
@@ -129,7 +132,9 @@ def get_response_stream(st, user_text: str, use_openai: bool = False, model: str
     append_message(st, "user", user_text)
     # add placeholder assistant message and get its index
     _ensure_history(st)
-    st.session_state[CHAT_HISTORY_KEY].append({"role": "assistant", "content": ""})
+    # append an empty assistant message with timestamp placeholder
+    ts = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    st.session_state[CHAT_HISTORY_KEY].append({"role": "assistant", "content": "", "ts": ts})
     assistant_idx = len(st.session_state[CHAT_HISTORY_KEY]) - 1
 
     api_key = os.environ.get("OPENAI_API_KEY")
