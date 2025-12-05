@@ -53,6 +53,11 @@ def app():
             render_chat_message(m)
 
     # Input area
+    # If a previous run requested the input to be cleared, apply it before creating the widget
+    if st.session_state.get("clear_chat_input"):
+        st.session_state["chat_input"] = ""
+        st.session_state["clear_chat_input"] = False
+
     col1, col2 = st.columns([8, 1])
     with col1:
         user_input = st.text_area("", key="chat_input", placeholder="Ask me anything...", height=80)
@@ -60,9 +65,8 @@ def app():
         send = st.button("Send")
 
     if send and user_input and user_input.strip():
-        # Clear input immediately
-        st.session_state["chat_input"] = ""
-
+        # Request the input be cleared on the next rerun (can't modify widget value after instantiation)
+        st.session_state["clear_chat_input"] = True
         placeholder = st.empty()
         typing_placeholder = st.empty()
         # Stream the assistant response and show typing indicator
