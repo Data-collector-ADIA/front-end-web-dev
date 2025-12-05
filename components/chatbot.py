@@ -114,3 +114,85 @@ def get_response(st, user_text: str, use_openai: bool = False, model: str = "gpt
 
     append_message(st, "assistant", assistant_text)
     return assistant_text
+
+
+def get_response_stream(st, user_text: str, use_openai: bool = False, model: str = "gpt-4o-mini"):
+    """Stream assistant response.
+
+    Yields successive text chunks (strings). For mock mode this simulates typing.
+    For OpenAI mode it uses the streaming Chat Completions API (if `OPENAI_API_KEY`
+    is set) and yields delta content as it arrives.
+
+    The function also appends a placeholder assistant message to session state and
+    updates its content progressively so `get_chat_history` remains accurate.
+    """
+    append_message(st, "user", user_text)
+    # add placeholder assistant message and get its index
+    _ensure_history(st)
+    st.session_state[CHAT_HISTORY_KEY].append({"role": "assistant", "content": ""})
+    assistant_idx = len(st.session_state[CHAT_HISTORY_KEY]) - 1
+
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if use_openai and api_key:
+        # Stream from OpenAI
+        url = "https://api.openai.com/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+        messages = get_chat_history(st)  # includes user + placeholder assistant
+        payload = {
+            "model": model,
+            "messages": messages,
+            "temperature": 0.2,
+            "max_tokens": 512,
+            "stream": True,
+        }
+        try:
+            with requests.post(url, headers=headers, json=payload, stream=True, timeout=60) as resp:
+                resp.raise_for_status()
+                buffer = ""
+                for line in resp.iter_lines(decode_unicode=True):
+                    if not line:
+                        continue
+                    # OpenAI streaming sends lines like: "data: {json}" or "data: [DONE]"
+                    try:
+                        text_line = line.decode() if isinstance(line, bytes) else line
+                    except Exception:
+                        text_line = line
+                    if text_line.startswith("data: "):
+                        data = text_line[len("data: "):].strip()
+                    else:
+                        data = text_line.strip()
+                    if data == "[DONE]":
+                        break
+                    try:
+                        chunk = requests.utils.json.loads(data)
+                        # navigate to delta content
+                        for choice in chunk.get("choices", []):
+                            delta = choice.get("delta", {})
+                            content = delta.get("content")
+                            if content:
+                                buffer += content
+                                # update session state and yield
+                                st.session_state[CHAT_HISTORY_KEY][assistant_idx]["content"] = buffer
+                                yield content
+                    except Exception:
+                        # ignore parse errors
+                        continue
+        except Exception as e:
+            err = f"(OpenAI stream error) {e}"
+            st.session_state[CHAT_HISTORY_KEY][assistant_idx]["content"] = err
+            yield err
+        return
+
+    # Mock streaming: simulate typing by splitting into chunks
+    full = _mock_response(user_text)
+    chunk_size = 12
+    buffer = ""
+    for i in range(0, len(full), chunk_size):
+        part = full[i : i + chunk_size]
+        buffer += part
+        st.session_state[CHAT_HISTORY_KEY][assistant_idx]["content"] = buffer
+        yield part
+        time.sleep(0.06)
