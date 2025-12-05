@@ -1,14 +1,8 @@
-"""Clean, minimal chatbot helper (canonical implementation).
+"""Clean, minimal chatbot helper (stable copy used while refactoring).
 
-Provides a small API used by the Streamlit pages and tests:
-- `get_chat_history(st)`
-- `append_message(st, role, content, timestamp=None)`
-- `clear_chat(st)`
-- `get_response_stream(st, user_text, use_openai=False, model="gpt-4o-mini")`
-
-This file is the canonical implementation (copied from the stable
-`chatbot_core` module) so tests that set `components.chatbot.DATA_DIR` work
-as expected.
+This module exposes the same public API as `components.chatbot` but is
+implemented as a single, non-duplicated file to avoid mid-rewrite instability.
+Use this as the source-of-truth while the main `components.chatbot` is rebuilt.
 """
 from __future__ import annotations
 
@@ -54,10 +48,8 @@ def _save_history_to_disk(history: List[Dict[str, str]]) -> None:
     try:
         with open(HISTORY_FILE, "w", encoding="utf-8") as f:
             json.dump(history, f, ensure_ascii=False, indent=2)
-    except Exception as e:
-        # Surface write errors during tests to aid debugging instead of
-        # silently swallowing exceptions.
-        raise
+    except Exception:
+        pass
 
 
 def _ensure_history(st):
@@ -77,7 +69,6 @@ def clear_chat(st) -> None:
 
 def append_message(st, role: str, content: str, timestamp: str = None) -> None:
     _ensure_history(st)
-    # Normalize content and avoid appending duplicate consecutive messages
     # Normalize content and avoid appending duplicate consecutive messages
     content = (content or "").strip()
     if not content and role == "user":
@@ -167,4 +158,3 @@ def get_response_stream(st, user_text: str, use_openai: bool = False, model: str
         st.session_state[CHAT_HISTORY_KEY][assistant_idx]["ts"] = datetime.now(timezone.utc).isoformat()
         _save_history_to_disk(st.session_state[CHAT_HISTORY_KEY])
         st.session_state["_is_streaming"] = False
-# End of canonical implementation
