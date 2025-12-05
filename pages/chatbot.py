@@ -87,9 +87,21 @@ def app():
     st.title("Assistant")
     use_openai = st.checkbox("Use OpenAI (requires OPENAI_API_KEY)")
 
-    history = chatbot.get_chat_history(st)
-    for m in history:
-        render_chat_message(m)
+    # Streaming / queue state: ensure these keys exist in session state
+    if "_is_streaming" not in st.session_state:
+        st.session_state["_is_streaming"] = False
+    if "_message_queue" not in st.session_state:
+        st.session_state["_message_queue"] = []
+    if "_auto_send" not in st.session_state:
+        st.session_state["_auto_send"] = False
+
+    # Single container for chat history. We'll re-render this container when
+    # new messages arrive to avoid duplicate rendering.
+    chat_container = st.container()
+    with chat_container:
+        history = chatbot.get_chat_history(st)
+        for m in history:
+            render_chat_message(m)
 
     if st.session_state.get("clear_chat_input"):
         st.session_state["chat_input"] = ""
@@ -101,35 +113,78 @@ def app():
         # Streamlit's accessibility checks (avoids the empty-label warning).
         user_input = st.text_area(label="Chat input", key="chat_input", placeholder="Ask me anything...", height=80, label_visibility="collapsed")
     with col2:
-        send = st.button("Send")
+        # Disable send while a response is being streamed to avoid duplicate sends
+        is_streaming = st.session_state.get("_is_streaming", False)
+        # Show queued count next to Send button
+        queued = len(st.session_state.get("_message_queue", []))
+        send_label = "Send"
+        if queued:
+            send_label = f"Send ({queued})"
+        send = st.button(send_label, disabled=is_streaming)
 
-    if send and user_input and user_input.strip():
+    def process_message(message_text: str):
+        # Called to process a single message: renders chat, streams response,
+        # and when finished will trigger processing of the next queued message.
         st.session_state["clear_chat_input"] = True
-        placeholder = st.empty()
         typing = st.empty()
         with st.spinner("Assistant is typing..."):
-            stream = chatbot.get_response_stream(st, user_input.strip(), use_openai=use_openai)
+            stream = chatbot.get_response_stream(st, message_text, use_openai=use_openai)
             collected = ""
-            hist = chatbot.get_chat_history(st)
-            with placeholder.container():
+            # Re-render the chat inside the single container so we don't duplicate
+            # messages that were previously rendered at the top of the page.
+            chat_container.empty()
+            with chat_container:
+                hist = chatbot.get_chat_history(st)
                 for m in hist:
                     render_chat_message(m)
-            assistant_ph = st.empty()
+                # create an assistant placeholder inside the chat container
+                assistant_ph = st.empty()
+
             for chunk in stream:
                 collected += chunk
                 assistant_ph.markdown(f"<div style='padding:6px 0'>{collected}</div>", unsafe_allow_html=True)
                 # show typing indicator while assistant timestamp is still empty
                 typing.markdown("<div class='typing-dots'>.</div>", unsafe_allow_html=True)
-            # after streaming completes, if assistant has a timestamp show final time
-            hist_after = chatbot.get_chat_history(st)
-            if hist_after and hist_after[-1].get('ts'):
-                # replace typing area with final timestamp under the assistant message
-                typing.empty()
-            else:
-                # fallback: clear typing indicator
-                typing.empty()
-        typing.empty()
+            # after streaming completes, clear the assistant placeholder and typing indicator
+            try:
+                assistant_ph.empty()
+            except Exception:
+                pass
+            typing.empty()
+
+        # If a queued message exists, prepare it to be auto-sent and rerun
+        if st.session_state["_message_queue"]:
+            next_msg = st.session_state["_message_queue"].pop(0)
+            st.session_state["chat_input"] = next_msg
+            st.session_state["_auto_send"] = True
+        else:
+            st.session_state["_auto_send"] = False
+
+        # Trigger a rerun so the next message (if any) is picked up and processed.
         safe_rerun()
+
+    # If auto-send flag is set (we placed a queued message into `chat_input`),
+    # process it immediately (as if the user had pressed Send).
+    if st.session_state.get("_auto_send") and st.session_state.get("chat_input"):
+        # clear the flag before processing to avoid loops
+        st.session_state["_auto_send"] = False
+        process_message(st.session_state.get("chat_input"))
+
+    # Normal send handling: enqueue if currently streaming, otherwise process now
+    if send and user_input and user_input.strip():
+        if st.session_state.get("_is_streaming"):
+            # Queue the message to be sent when the current stream finishes
+            q = st.session_state["_message_queue"]
+            next_msg = user_input.strip()
+            # avoid queuing the identical message twice in a row
+            if not q or q[-1] != next_msg:
+                q.append(next_msg)
+                st.session_state["_message_queue"] = q
+            st.session_state["clear_chat_input"] = True
+            st.info("Message queued — it will be sent when the assistant finishes typing.")
+            safe_rerun()
+        else:
+            process_message(user_input.strip())
 
     st.divider()
     c1, c2 = st.columns(2)
