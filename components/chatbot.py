@@ -172,11 +172,13 @@ def get_response_stream(st, user_text: str, use_openai: bool = False, model: str
     append_message(st, "user", user_text)
     # add placeholder assistant message and get its index
     _ensure_history(st)
-    # append an empty assistant message with ISO timestamp placeholder
-    ts = datetime.utcnow().replace(tzinfo=timezone.utc).isoformat()
-    st.session_state[CHAT_HISTORY_KEY].append({"role": "assistant", "content": "", "ts": ts})
-    _save_history_to_disk(st.session_state[CHAT_HISTORY_KEY])
+    # append an empty assistant message; keep timestamp empty for now and
+    # set it once the assistant response is finalized to avoid premature
+    # timestamps and to improve relative-time accuracy in the UI.
+    st.session_state[CHAT_HISTORY_KEY].append({"role": "assistant", "content": "", "ts": ""})
     assistant_idx = len(st.session_state[CHAT_HISTORY_KEY]) - 1
+    # persist initial history (user message + empty assistant placeholder)
+    _save_history_to_disk(st.session_state[CHAT_HISTORY_KEY])
 
     api_key = os.environ.get("OPENAI_API_KEY")
     if use_openai and api_key:
@@ -198,6 +200,12 @@ def get_response_stream(st, user_text: str, use_openai: bool = False, model: str
             with requests.post(url, headers=headers, json=payload, stream=True, timeout=60) as resp:
                 resp.raise_for_status()
                 buffer = ""
+                # Debounce persistence: persist only if more than `debounce_seconds`
+                # have elapsed since last persist to reduce I/O during fast streams.
+                persist_every = 3
+                chunk_counter = 0
+                debounce_seconds = 0.18
+                last_persist = st.session_state.get("_last_persist_time", 0)
                 for line in resp.iter_lines(decode_unicode=True):
                     if not line:
                         continue
@@ -222,7 +230,14 @@ def get_response_stream(st, user_text: str, use_openai: bool = False, model: str
                                 buffer += content
                                 # update session state and yield
                                 st.session_state[CHAT_HISTORY_KEY][assistant_idx]["content"] = buffer
-                                _save_history_to_disk(st.session_state[CHAT_HISTORY_KEY])
+                                chunk_counter += 1
+                                # persist less frequently to reduce I/O; always persist finalization below
+                                now = time.monotonic()
+                                # persist when chunk counter threshold reached or debounce elapsed
+                                if chunk_counter % persist_every == 0 or (now - last_persist) > debounce_seconds:
+                                    _save_history_to_disk(st.session_state[CHAT_HISTORY_KEY])
+                                    last_persist = now
+                                    st.session_state["_last_persist_time"] = last_persist
                                 yield content
                     except Exception:
                         # ignore parse errors
@@ -230,18 +245,39 @@ def get_response_stream(st, user_text: str, use_openai: bool = False, model: str
         except Exception as e:
             err = f"(OpenAI stream error) {e}"
             st.session_state[CHAT_HISTORY_KEY][assistant_idx]["content"] = err
+            # set timestamp for failed response
+            st.session_state[CHAT_HISTORY_KEY][assistant_idx]["ts"] = datetime.utcnow().replace(tzinfo=timezone.utc).isoformat()
             _save_history_to_disk(st.session_state[CHAT_HISTORY_KEY])
             yield err
-        return
+        else:
+            # on clean completion, finalize timestamp and persist remaining content
+            st.session_state[CHAT_HISTORY_KEY][assistant_idx]["ts"] = datetime.utcnow().replace(tzinfo=timezone.utc).isoformat()
+            _save_history_to_disk(st.session_state[CHAT_HISTORY_KEY])
+            # update last_persist_time
+            st.session_state["_last_persist_time"] = time.monotonic()
+            return
+        # end OpenAI streaming branch
 
     # Mock streaming: simulate typing by splitting into chunks
     full = _mock_response(user_text)
     chunk_size = 12
     buffer = ""
+    persist_every = 3
+    chunk_counter = 0
+    debounce_seconds = 0.18
+    last_persist = st.session_state.get("_last_persist_time", 0)
     for i in range(0, len(full), chunk_size):
         part = full[i : i + chunk_size]
         buffer += part
         st.session_state[CHAT_HISTORY_KEY][assistant_idx]["content"] = buffer
-        _save_history_to_disk(st.session_state[CHAT_HISTORY_KEY])
+        chunk_counter += 1
+        now = time.monotonic()
+        if chunk_counter % persist_every == 0 or (now - last_persist) > debounce_seconds:
+            _save_history_to_disk(st.session_state[CHAT_HISTORY_KEY])
+            last_persist = now
+            st.session_state["_last_persist_time"] = last_persist
         yield part
         time.sleep(0.06)
+    # finalize timestamp and persist final content
+    st.session_state[CHAT_HISTORY_KEY][assistant_idx]["ts"] = datetime.utcnow().replace(tzinfo=timezone.utc).isoformat()
+    _save_history_to_disk(st.session_state[CHAT_HISTORY_KEY])
